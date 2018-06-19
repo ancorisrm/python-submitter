@@ -1,0 +1,84 @@
+---
+modules:
+  text_vectorizer:
+    image: catenae/erdd-links
+    input:
+      - new_texts
+    output:
+      - count_vectors
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1 # 20
+
+  vector_aggregator:
+    image: catenae/erdd-links
+    input:
+      - count_vectors
+    output:
+      - aggregated_vectors
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1 # 40
+
+  tfidf_transformer:
+    image: catenae/erdd-links
+    input:
+      - count_vectors
+      - aggregated_vectors
+    output:
+      - tfidf_vectors
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1 # 40
+
+  model_predictor:
+    image: catenae/erdd-links
+    input:
+      - tfidf_vectors
+    output:
+      - user_probabilities
+      - text_probabilities
+      - processed_users
+      - processed_texts
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1 # 10
+
+  probability_storer:
+    image: catenae/erdd-links
+    input:
+      - user_probabilities
+
+  post_updater:
+    image: catenae/erdd-links
+    input:
+      - text_probabilities
+
+  alert_manager:
+    image: catenae/erdd-links
+    input:
+      - user_probabilities
+    output:
+      - alerts
+    aerospike:
+
+  alert_storer:
+    image: catenae/erdd-links
+    input:
+      - alerts
+
+conf:
+  kafka:
+    address: 127.0.0.1
+    port: 9092
+  aerospike:
+    address: 127.0.0.1
+    port: 3000
+  ancoris:
+    address: 127.0.0.1
+    port: 40100
+    base_url: /api/v1.0

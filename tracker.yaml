@@ -1,0 +1,58 @@
+---
+modules:
+  submission_crawler:
+    image: catenae/rut-links
+    output:
+      - user_ids_to_check
+    instances: 1
+
+  comment_crawler:
+    image: catenae/rut-links
+    output:
+      - user_ids_to_check
+    instances: 1
+
+  new_user_filter:
+    image: catenae/rut-links
+    input:
+      - user_ids_to_check
+    output:
+      - new_users
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1
+
+  user_content_crawler:
+    image: catenae/rut-links
+    input:
+      - new_users
+      - p1_users
+      - p2_users
+      - p3_users
+      - p4_users
+      - p5_users
+      - p6_users
+    output:
+      - new_texts
+    aerospike:
+      namespace: test
+      set: setup_objects
+    instances: 1 # 12
+
+  post_storer:
+    image: catenae/rut-links
+    input:
+      - new_texts
+
+conf:
+  kafka:
+    address: 127.0.0.1
+    port: 9092
+  aerospike:
+    address: 127.0.0.1
+    port: 3000
+  ancoris:
+    address: 127.0.0.1
+    port: 40100
+    base_url: /api/v1.0
